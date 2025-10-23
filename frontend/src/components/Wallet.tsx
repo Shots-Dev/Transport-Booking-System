@@ -1,24 +1,65 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { ArrowLeft, Wallet as WalletIcon, Plus, History } from "lucide-react";
+import { useUser } from "../contexts/UserContext";
 
 interface WalletProps {
   onBack: () => void;
 }
 
 export default function Wallet({ onBack }: WalletProps) {
-  const [balance, setBalance] = useState(150.00);
+  const { customerName } = useUser();
+  const [balance, setBalance] = useState(0.00);
   const [loadAmount, setLoadAmount] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLoadFunds = () => {
+  useEffect(() => {
+    fetchBalance();
+  }, []);
+
+  const fetchBalance = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`http://127.0.0.1:8000/api/wallet/balance/${encodeURIComponent(customerName)}/`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch balance');
+      }
+      const data = await response.json();
+      setBalance(parseFloat(data.balance));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLoadFunds = async () => {
     const amount = parseFloat(loadAmount);
     if (amount > 0) {
-      setBalance(prev => prev + amount);
-      setLoadAmount("");
-      alert(`Successfully loaded R${amount.toFixed(2)} to your wallet!`);
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/wallet/load/${encodeURIComponent(customerName)}/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ amount: amount.toString() }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to load funds');
+        }
+
+        const data = await response.json();
+        setBalance(parseFloat(data.new_balance));
+        setLoadAmount("");
+        alert(`Successfully loaded R${amount.toFixed(2)} to your wallet!`);
+      } catch (err) {
+        alert(`Error loading funds: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
     } else {
       alert("Please enter a valid amount");
     }
@@ -63,7 +104,9 @@ export default function Wallet({ onBack }: WalletProps) {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-3">Wallet Balance</h1>
-                <p className="text-5xl font-bold text-[#2563eb]">R{balance.toFixed(2)}</p>
+                <p className="text-5xl font-bold text-[#2563eb]">
+                  {loading ? 'Loading...' : `R${balance.toFixed(2)}`}
+                </p>
               </div>
               <div className="bg-[#2563eb]/10 p-6 rounded-full">
                 <WalletIcon className="w-20 h-20 text-[#2563eb]" />

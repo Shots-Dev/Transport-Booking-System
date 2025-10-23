@@ -49,14 +49,22 @@ class BookingViewSet(viewsets.ModelViewSet):
         # Create booking
         data['price'] = price
         data['status'] = 'Confirmed'
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        booking = serializer.save()
+        booking = Booking.objects.create(
+            vehicle=vehicle,
+            customer_name=customer_name,
+            start_time=start_time,
+            end_time=end_time,
+            distance_km=distance_km,
+            passengers=passengers,
+            price=price,
+            status='Confirmed'
+        )
 
         # Mark vehicle as unavailable (optional, depending on business logic)
         # vehicle.is_available = False
         # vehicle.save()
 
+        serializer = self.get_serializer(booking)
         response_data = serializer.data
         response_data['updated_wallet_balance'] = balance
         return Response(response_data, status=status.HTTP_201_CREATED)

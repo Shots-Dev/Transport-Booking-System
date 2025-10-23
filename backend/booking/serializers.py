@@ -5,4 +5,4 @@ class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
         fields = '__all__'
-        read_only_fields = ['price', 'status']  # Price and status are calculated/set in view
+        read_only_fields = ['status', 'price']  # Both status and price are read-only

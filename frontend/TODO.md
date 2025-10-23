@@ -1,6 +1,8 @@
-# TODO for Available Cars Page
+# Frontend-Backend Integration TODO
 
-- [x] Create AvailableCars component with list of available vehicles
-- [x] Update App.tsx to include "availableCars" view
-- [x] Connect Search Vehicles button in CustomerDashboard to navigate to AvailableCars
-- [x] Add back navigation from AvailableCars to dashboard
+- [x] Create user context for authentication/customer name
+- [x] Update CustomerDashboard to fetch wallet balance from API
+- [x] Standardize customer name (use "Shots" consistently)
+- [x] Implement booking creation in AvailableCars.tsx (with form for booking details)
+- [x] Update Wallet.tsx to use context for customer name
+- [ ] Test full flow: dashboard balance -> load wallet -> search vehicles -> book vehicle

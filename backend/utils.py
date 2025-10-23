@@ -18,7 +18,7 @@ def calculate_base_price(vehicle_type, distance_km, passengers):
         'Truck': Decimal('9.00'),
     }
     rate_per_km = rates.get(vehicle_type, Decimal('6.00'))
-    base_price = distance_km * rate_per_km + (2 * passengers)
+    base_price = Decimal(str(distance_km)) * rate_per_km + (2 * passengers)
     return base_price
 
 def calculate_surcharge(start_time):
