@@ -10,6 +10,7 @@ import { useUser } from "../contexts/UserContext";
 
 interface AvailableCarsProps {
   onBack: () => void;
+  onProceedToSummary: (vehicle: any, details: any) => void;
 }
 
 interface Vehicle {
@@ -21,7 +22,7 @@ interface Vehicle {
   is_available: boolean;
 }
 
-export default function AvailableCars({ onBack }: AvailableCarsProps) {
+export default function AvailableCars({ onBack, onProceedToSummary }: AvailableCarsProps) {
   const { customerName } = useUser();
   const [availableCars, setAvailableCars] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -313,11 +314,23 @@ export default function AvailableCars({ onBack }: AvailableCarsProps) {
                   Cancel
                 </Button>
                 <Button
-                  onClick={handleBookingSubmit}
+                  onClick={() => {
+                    if (!selectedVehicle || !bookingForm.startTime || !bookingForm.endTime || !bookingForm.distanceKm || !bookingForm.passengers) {
+                      alert('Please fill in all fields');
+                      return;
+                    }
+                    onProceedToSummary(selectedVehicle, {
+                      startTime: bookingForm.startTime,
+                      endTime: bookingForm.endTime,
+                      distanceKm: parseFloat(bookingForm.distanceKm),
+                      passengers: parseInt(bookingForm.passengers)
+                    });
+                    closeModal();
+                  }}
                   disabled={bookingLoading}
                   className="flex-1 bg-[#2563eb] hover:bg-[#1d4ed8] text-white"
                 >
-                  {bookingLoading ? 'Booking...' : 'Confirm Booking'}
+                  Proceed to Summary
                 </Button>
               </div>
             </div>

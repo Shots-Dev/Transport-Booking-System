@@ -18,11 +18,11 @@ class VehicleSearchAPIView(generics.ListAPIView):
         queryset = Vehicle.objects.filter(is_available=True)
 
         # Get query parameters
-        start_time_str = self.request.query_params.get('start_time')
-        end_time_str = self.request.query_params.get('end_time')
-        distance_km_str = self.request.query_params.get('distance_km')
-        passengers_str = self.request.query_params.get('passengers')
-        vehicle_type = self.request.query_params.get('vehicle_type')
+        start_time_str = self.request.GET.get('start_time')
+        end_time_str = self.request.GET.get('end_time')
+        distance_km_str = self.request.GET.get('distance_km')
+        passengers_str = self.request.GET.get('passengers')
+        vehicle_type = self.request.GET.get('vehicle_type')
 
         if not all([start_time_str, end_time_str, distance_km_str, passengers_str]):
             return Vehicle.objects.none()  # Return empty if required params missing
@@ -52,9 +52,9 @@ class VehicleSearchAPIView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        distance_km_str = request.query_params.get('distance_km')
-        passengers_str = request.query_params.get('passengers')
-        start_time_str = request.query_params.get('start_time')
+        distance_km_str = request.GET.get('distance_km')
+        passengers_str = request.GET.get('passengers')
+        start_time_str = request.GET.get('start_time')
 
         if not all([distance_km_str, passengers_str, start_time_str]):
             return Response({"error": "Missing required parameters: start_time, end_time, distance_km, passengers"}, status=status.HTTP_400_BAD_REQUEST)

@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from django.utils.dateparse import parse_datetime
 from .models import Booking
 from .serializers import BookingSerializer
@@ -68,3 +69,10 @@ class BookingViewSet(viewsets.ModelViewSet):
         response_data = serializer.data
         response_data['updated_wallet_balance'] = balance
         return Response(response_data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['get'], url_path='customer/(?P<customer_name>[^/.]+)')
+    def get_customer_bookings(self, request, customer_name=None):
+        """Get all bookings for a customer"""
+        bookings = Booking.objects.filter(customer_name=customer_name).order_by('-start_time')
+        serializer = self.get_serializer(bookings, many=True)
+        return Response(serializer.data)

@@ -20,6 +20,8 @@ export default function Login({ onBack, userType, onLoginSuccess }: LoginProps) 
     // Handle login logic here
     if (userType === "customer" && email === "shots@123" && password === "shots123") {
       onLoginSuccess();
+    } else if (userType === "admin" && email === "admin@csir" && password === "admin123") {
+      onLoginSuccess();
     } else {
       alert("Invalid credentials");
     }

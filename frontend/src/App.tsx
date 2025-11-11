@@ -6,11 +6,18 @@ import Login from "./components/Login";
 import CustomerDashboard from "./components/CustomerDashboard";
 import Wallet from "./components/Wallet";
 import AvailableCars from "./components/AvailableCars";
+import MyBookings from "./components/MyBookings";
+import BookingSummary from "./components/BookingSummary";
+import BookingSummaryWrapper from "./components/BookingSummaryWrapper";
 import { UserProvider } from "./contexts/UserContext";
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<"home" | "login" | "dashboard" | "wallet" | "availableCars">("home");
+  const [currentView, setCurrentView] = useState<"home" | "login" | "dashboard" | "wallet" | "availableCars" | "myBookings" | "bookingSummary">("home");
   const [userType, setUserType] = useState<"customer" | "admin" | null>(null);
+  const [bookingData, setBookingData] = useState<{
+    vehicle: any;
+    details: any;
+  } | null>(null);
 
   const handleCustomerLogin = () => {
     setCurrentView("login");
@@ -31,6 +38,11 @@ export default function App() {
     setCurrentView("dashboard");
   };
 
+  const handleProceedToSummary = (vehicle: any, details: any) => {
+    setBookingData({ vehicle, details });
+    setCurrentView("bookingSummary");
+  };
+
   return (
     <UserProvider>
       {currentView === "login" && (
@@ -38,7 +50,7 @@ export default function App() {
       )}
 
       {currentView === "dashboard" && (
-        <CustomerDashboard onBack={handleBackToHome} onNavigateToWallet={() => setCurrentView("wallet")} onNavigateToAvailableCars={() => setCurrentView("availableCars")} />
+        <CustomerDashboard onBack={handleBackToHome} onNavigateToWallet={() => setCurrentView("wallet")} onNavigateToAvailableCars={() => setCurrentView("availableCars")} onNavigateToMyBookings={() => setCurrentView("myBookings")} />
       )}
 
       {currentView === "wallet" && (
@@ -46,7 +58,24 @@ export default function App() {
       )}
 
       {currentView === "availableCars" && (
-        <AvailableCars onBack={() => setCurrentView("dashboard")} />
+        <AvailableCars onBack={() => setCurrentView("dashboard")} onProceedToSummary={handleProceedToSummary} />
+      )}
+
+      {currentView === "myBookings" && (
+        <MyBookings onBack={() => setCurrentView("dashboard")} />
+      )}
+
+      {currentView === "bookingSummary" && bookingData && (
+        <UserProvider>
+          <BookingSummaryWrapper
+            bookingData={bookingData}
+            onBack={() => setCurrentView("availableCars")}
+            onSuccess={() => {
+              setCurrentView("dashboard");
+              setBookingData(null);
+            }}
+          />
+        </UserProvider>
       )}
 
       {currentView === "home" && (

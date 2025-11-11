@@ -8,9 +8,10 @@ interface CustomerDashboardProps {
   onBack: () => void;
   onNavigateToWallet: () => void;
   onNavigateToAvailableCars: () => void;
+  onNavigateToMyBookings: () => void;
 }
 
-export default function CustomerDashboard({ onBack, onNavigateToWallet, onNavigateToAvailableCars }: CustomerDashboardProps) {
+export default function CustomerDashboard({ onBack, onNavigateToWallet, onNavigateToAvailableCars, onNavigateToMyBookings }: CustomerDashboardProps) {
   const { customerName } = useUser();
   const [walletBalance, setWalletBalance] = useState(0.00);
   const [loading, setLoading] = useState(true);
@@ -48,7 +49,7 @@ export default function CustomerDashboard({ onBack, onNavigateToWallet, onNaviga
 
   const handleMyBookings = () => {
     // Navigate to bookings page
-    alert("Navigate to my bookings");
+    onNavigateToMyBookings();
   };
 
   return (
