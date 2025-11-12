@@ -15,8 +15,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django.http import HttpResponse
+
+def map_page(request):
+    return HttpResponse("Map page placeholder")
 
 urlpatterns = [
+    path("", map_page, name="map_page"),
     path('admin/', admin.site.urls),
+    path('api/vehicles/', include('vehicles.urls')),
+    path('api/bookings/', include('booking.urls')),
+    path('api/wallet/', include('wallet.urls')),
 ]

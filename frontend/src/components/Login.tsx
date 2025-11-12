@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { ArrowLeft, Mail, Lock } from "lucide-react";
+import { useUser } from "../contexts/UserContext";
 
 interface LoginProps {
   onBack: () => void;
@@ -14,11 +15,18 @@ interface LoginProps {
 export default function Login({ onBack, userType, onLoginSuccess }: LoginProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { setUserType, setCustomerName } = useUser();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle login logic here
     if (userType === "customer" && email === "shots@123" && password === "shots123") {
+      setUserType("customer");
+      setCustomerName("Shots");
+      onLoginSuccess();
+    } else if (userType === "admin" && email === "admin@csir" && password === "admin123") {
+      setUserType("admin");
+      setCustomerName("Admin");
       onLoginSuccess();
     } else {
       alert("Invalid credentials");

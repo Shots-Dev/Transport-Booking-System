@@ -1,151 +1,123 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
-import { ArrowLeft, Car, MapPin, Clock, Users, Star } from "lucide-react";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { ArrowLeft, Car, MapPin, Clock, Users, Star, Calendar, X } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { useUser } from "../contexts/UserContext";
 
 interface AvailableCarsProps {
   onBack: () => void;
+  onProceedToSummary: (vehicle: any, details: any) => void;
 }
 
-export default function AvailableCars({ onBack }: AvailableCarsProps) {
-  const [availableCars] = useState([
-    {
-      id: 1,
-      type: "Sedan",
-      model: "Toyota Corolla",
-      price: 25,
-      seats: 4,
-      rating: 4.5,
-      location: "Cape Town CBD",
-      available: true,
-      image: "/car-placeholder.jpg"
-    },
-    {
-      id: 2,
-      type: "SUV",
-      model: "Honda CR-V",
-      price: 35,
-      seats: 5,
-      rating: 4.8,
-      location: "Johannesburg Airport",
-      available: true,
-      image: "/car-placeholder.jpg"
-    },
-    {
-      id: 3,
-      type: "Hatchback",
-      model: "Volkswagen Polo",
-      price: 20,
-      seats: 4,
-      rating: 4.2,
-      location: "Durban Central",
-      available: false,
-      image: "/car-placeholder.jpg"
-    },
-    {
-      id: 4,
-      type: "Luxury",
-      model: "BMW 3 Series",
-      price: 50,
-      seats: 4,
-      rating: 4.9,
-      location: "Pretoria CBD",
-      available: true,
-      image: "/car-placeholder.jpg"
-    },
-    {
-      id: 5,
-      type: "Minivan",
-      model: "Toyota Quantum",
-      price: 40,
-      seats: 8,
-      rating: 4.6,
-      location: "Port Elizabeth",
-      available: true,
-      image: "/car-placeholder.jpg"
-    },
-    {
-      id: 6,
-      type: "Pickup Truck",
-      model: "Ford Ranger",
-      price: 45,
-      seats: 4,
-      rating: 4.7,
-      location: "Bloemfontein",
-      available: true,
-      image: "/car-placeholder.jpg"
-    },
-    {
-      id: 7,
-      type: "Electric",
-      model: "Tesla Model 3",
-      price: 55,
-      seats: 5,
-      rating: 4.9,
-      location: "Cape Town Airport",
-      available: true,
-      image: "/car-placeholder.jpg"
-    },
-    {
-      id: 8,
-      type: "Compact",
-      model: "Renault Clio",
-      price: 18,
-      seats: 4,
-      rating: 4.1,
-      location: "East London",
-      available: true,
-      image: "/car-placeholder.jpg"
-    },
-    {
-      id: 9,
-      type: "SUV",
-      model: "Nissan Qashqai",
-      price: 32,
-      seats: 5,
-      rating: 4.4,
-      location: "Kimberley",
-      available: false,
-      image: "/car-placeholder.jpg"
-    },
-    {
-      id: 10,
-      type: "Luxury",
-      model: "Mercedes C-Class",
-      price: 60,
-      seats: 4,
-      rating: 4.8,
-      location: "Sandton",
-      available: true,
-      image: "/car-placeholder.jpg"
-    },
-    {
-      id: 11,
-      type: "Hatchback",
-      model: "Ford Fiesta",
-      price: 22,
-      seats: 4,
-      rating: 4.3,
-      location: "Pietermaritzburg",
-      available: true,
-      image: "/car-placeholder.jpg"
-    },
-    {
-      id: 12,
-      type: "SUV",
-      model: "Jeep Grand Cherokee",
-      price: 48,
-      seats: 5,
-      rating: 4.7,
-      location: "George",
-      available: true,
-      image: "/car-placeholder.jpg"
-    }
-  ]);
+interface Vehicle {
+  id: number;
+  name: string;
+  vehicle_type: string;
+  capacity: number;
+  rate_per_km: string;
+  is_available: boolean;
+}
 
-  const handleBookCar = (carId: number) => {
-    alert(`Booking car with ID: ${carId}`);
-    // TODO: Implement booking logic
+export default function AvailableCars({ onBack, onProceedToSummary }: AvailableCarsProps) {
+  const { customerName } = useUser();
+  const [availableCars, setAvailableCars] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [bookingForm, setBookingForm] = useState({
+    startTime: null as Date | null,
+    endTime: null as Date | null,
+    distanceKm: '',
+    passengers: ''
+  });
+  const [bookingLoading, setBookingLoading] = useState(false);
+
+  useEffect(() => {
+    fetchVehicles();
+  }, []);
+
+  const fetchVehicles = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://127.0.0.1:8000/api/vehicles/');
+      if (!response.ok) {
+        throw new Error('Failed to fetch vehicles');
+      }
+      const data = await response.json();
+      setAvailableCars(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBookCar = (vehicle: Vehicle) => {
+    setSelectedVehicle(vehicle);
+    setShowBookingModal(true);
+  };
+
+  const handleBookingSubmit = async () => {
+    if (!selectedVehicle || !bookingForm.startTime || !bookingForm.endTime || !bookingForm.distanceKm || !bookingForm.passengers) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    setBookingLoading(true);
+    try {
+      const bookingData = {
+        vehicle: selectedVehicle.id,
+        customer_name: customerName,
+        start_time: bookingForm.startTime.toISOString(),
+        end_time: bookingForm.endTime.toISOString(),
+        distance_km: parseFloat(bookingForm.distanceKm),
+        passengers: parseInt(bookingForm.passengers)
+      };
+
+      const response = await fetch('http://127.0.0.1:8000/api/bookings/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bookingData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create booking');
+      }
+
+      const data = await response.json();
+      alert(`Booking successful! Total price: R${data.price}`);
+      setShowBookingModal(false);
+      setBookingForm({
+        startTime: null,
+        endTime: null,
+        distanceKm: '',
+        passengers: ''
+      });
+      setSelectedVehicle(null);
+    } catch (error) {
+      alert(`Booking failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  const closeModal = () => {
+    setShowBookingModal(false);
+    setSelectedVehicle(null);
+    setBookingForm({
+      startTime: null,
+      endTime: null,
+      distanceKm: '',
+      passengers: ''
+    });
   };
 
   return (
@@ -193,49 +165,38 @@ export default function AvailableCars({ onBack }: AvailableCarsProps) {
                 {/* Car Details */}
                 <div className="space-y-3">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{car.model}</h3>
-                    <p className="text-sm text-gray-600">{car.type}</p>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      {car.location}
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Star className="w-4 h-4 mr-1 text-yellow-400 fill-current" />
-                      {car.rating}
-                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">{car.name}</h3>
+                    <p className="text-sm text-gray-600">{car.vehicle_type}</p>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center text-sm text-gray-600">
                       <Users className="w-4 h-4 mr-1" />
-                      {car.seats} seats
+                      {car.capacity} seats
                     </div>
                     <div className="text-lg font-bold text-[#2563eb]">
-                      R{car.price}/hour
+                      R{car.rate_per_km}/km
                     </div>
                   </div>
 
                   {/* Availability Status */}
                   <div className="flex items-center justify-between">
                     <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      car.available
+                      car.is_available
                         ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-800'
                     }`}>
-                      {car.available ? 'Available' : 'Unavailable'}
+                      {car.is_available ? 'Available' : 'Unavailable'}
                     </div>
                   </div>
 
                   {/* Book Button */}
                   <Button
-                    onClick={() => handleBookCar(car.id)}
-                    disabled={!car.available}
+                    onClick={() => handleBookCar(car)}
+                    disabled={!car.is_available}
                     className="w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {car.available ? 'Book Now' : 'Unavailable'}
+                    {car.is_available ? 'Book Now' : 'Unavailable'}
                   </Button>
                 </div>
               </div>
@@ -249,6 +210,130 @@ export default function AvailableCars({ onBack }: AvailableCarsProps) {
             <Car className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-600">No cars available at the moment</p>
             <p className="text-sm text-gray-500 mt-2">Please check back later</p>
+          </div>
+        )}
+
+        {/* Booking Modal */}
+        {showBookingModal && selectedVehicle && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Book {selectedVehicle.name}</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={closeModal}
+                  className="p-1"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Start Time */}
+                <div>
+                  <Label htmlFor="startTime" className="text-sm font-medium text-gray-700 mb-2 block">
+                    Start Time
+                  </Label>
+                  <DatePicker
+                    selected={bookingForm.startTime}
+                    onChange={(date) => setBookingForm(prev => ({ ...prev, startTime: date }))}
+                    showTimeSelect
+                    dateFormat="Pp"
+                    placeholderText="Select start time"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent"
+                  />
+                </div>
+
+                {/* End Time */}
+                <div>
+                  <Label htmlFor="endTime" className="text-sm font-medium text-gray-700 mb-2 block">
+                    End Time
+                  </Label>
+                  <DatePicker
+                    selected={bookingForm.endTime}
+                    onChange={(date) => setBookingForm(prev => ({ ...prev, endTime: date }))}
+                    showTimeSelect
+                    dateFormat="Pp"
+                    placeholderText="Select end time"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent"
+                  />
+                </div>
+
+                {/* Distance */}
+                <div>
+                  <Label htmlFor="distance" className="text-sm font-medium text-gray-700 mb-2 block">
+                    Distance (km)
+                  </Label>
+                  <Input
+                    id="distance"
+                    type="number"
+                    placeholder="Enter distance in km"
+                    value={bookingForm.distanceKm}
+                    onChange={(e) => setBookingForm(prev => ({ ...prev, distanceKm: e.target.value }))}
+                    min="0"
+                    step="0.1"
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Passengers */}
+                <div>
+                  <Label htmlFor="passengers" className="text-sm font-medium text-gray-700 mb-2 block">
+                    Number of Passengers
+                  </Label>
+                  <Input
+                    id="passengers"
+                    type="number"
+                    placeholder="Enter number of passengers"
+                    value={bookingForm.passengers}
+                    onChange={(e) => setBookingForm(prev => ({ ...prev, passengers: e.target.value }))}
+                    min="1"
+                    max={selectedVehicle.capacity}
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Price Preview */}
+                {bookingForm.distanceKm && (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-600">Estimated Price:</p>
+                    <p className="text-2xl font-bold text-[#2563eb]">
+                      R{(parseFloat(bookingForm.distanceKm) * parseFloat(selectedVehicle.rate_per_km)).toFixed(2)}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-4 mt-6">
+                <Button
+                  variant="outline"
+                  onClick={closeModal}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (!selectedVehicle || !bookingForm.startTime || !bookingForm.endTime || !bookingForm.distanceKm || !bookingForm.passengers) {
+                      alert('Please fill in all fields');
+                      return;
+                    }
+                    onProceedToSummary(selectedVehicle, {
+                      startTime: bookingForm.startTime,
+                      endTime: bookingForm.endTime,
+                      distanceKm: parseFloat(bookingForm.distanceKm),
+                      passengers: parseInt(bookingForm.passengers)
+                    });
+                    closeModal();
+                  }}
+                  disabled={bookingLoading}
+                  className="flex-1 bg-[#2563eb] hover:bg-[#1d4ed8] text-white"
+                >
+                  Proceed to Summary
+                </Button>
+              </div>
+            </div>
           </div>
         )}
       </div>

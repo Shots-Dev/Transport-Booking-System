@@ -1,16 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { ArrowLeft, Wallet, Search, Calendar, CreditCard } from "lucide-react";
+import { useUser } from "../contexts/UserContext";
 
 interface CustomerDashboardProps {
   onBack: () => void;
   onNavigateToWallet: () => void;
   onNavigateToAvailableCars: () => void;
+  onNavigateToMyBookings: () => void;
 }
 
-export default function CustomerDashboard({ onBack, onNavigateToWallet, onNavigateToAvailableCars }: CustomerDashboardProps) {
-  const [walletBalance] = useState(150.00); // Mock balance
+export default function CustomerDashboard({ onBack, onNavigateToWallet, onNavigateToAvailableCars, onNavigateToMyBookings }: CustomerDashboardProps) {
+  const { customerName } = useUser();
+  const [walletBalance, setWalletBalance] = useState(0.00);
+  const [loading, setLoading] = useState(true);
 
   const handleLoadWallet = () => {
     // Navigate to wallet page
@@ -22,9 +26,30 @@ export default function CustomerDashboard({ onBack, onNavigateToWallet, onNaviga
     onNavigateToAvailableCars();
   };
 
+  const fetchBalance = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`http://127.0.0.1:8000/api/wallet/balance/${encodeURIComponent(customerName)}/`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch balance');
+      }
+      const data = await response.json();
+      setWalletBalance(parseFloat(data.balance));
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+      setWalletBalance(0.00);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBalance();
+  }, [customerName]);
+
   const handleMyBookings = () => {
     // Navigate to bookings page
-    alert("Navigate to my bookings");
+    onNavigateToMyBookings();
   };
 
   return (
