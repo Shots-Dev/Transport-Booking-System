@@ -4,6 +4,7 @@ import { Card } from "./components/ui/card";
 import { Button } from "./components/ui/button";
 import Login from "./components/Login";
 import CustomerDashboard from "./components/CustomerDashboard";
+import AdminDashboard from "./components/AdminDashboard";
 import Wallet from "./components/Wallet";
 import AvailableCars from "./components/AvailableCars";
 import MyBookings from "./components/MyBookings";
@@ -12,7 +13,7 @@ import BookingSummaryWrapper from "./components/BookingSummaryWrapper";
 import { UserProvider } from "./contexts/UserContext";
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<"home" | "login" | "dashboard" | "wallet" | "availableCars" | "myBookings" | "bookingSummary">("home");
+  const [currentView, setCurrentView] = useState<"home" | "login" | "dashboard" | "adminDashboard" | "wallet" | "availableCars" | "myBookings" | "bookingSummary">("home");
   const [userType, setUserType] = useState<"customer" | "admin" | null>(null);
   const [bookingData, setBookingData] = useState<{
     vehicle: any;
@@ -35,7 +36,11 @@ export default function App() {
   };
 
   const handleLoginSuccess = () => {
-    setCurrentView("dashboard");
+    if (userType === "admin") {
+      setCurrentView("adminDashboard");
+    } else {
+      setCurrentView("dashboard");
+    }
   };
 
   const handleProceedToSummary = (vehicle: any, details: any) => {
@@ -49,8 +54,12 @@ export default function App() {
         <Login onBack={handleBackToHome} userType={userType} onLoginSuccess={handleLoginSuccess} />
       )}
 
-      {currentView === "dashboard" && (
+      {currentView === "dashboard" && userType === "customer" && (
         <CustomerDashboard onBack={handleBackToHome} onNavigateToWallet={() => setCurrentView("wallet")} onNavigateToAvailableCars={() => setCurrentView("availableCars")} onNavigateToMyBookings={() => setCurrentView("myBookings")} />
+      )}
+
+      {currentView === "adminDashboard" && userType === "admin" && (
+        <AdminDashboard onBack={handleBackToHome} />
       )}
 
       {currentView === "wallet" && (
